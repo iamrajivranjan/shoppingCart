@@ -6,7 +6,9 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 const expressHbs = require('express-handlebars');
 const mongoose = require('mongoose');
-
+const session = require('express-session');
+const passport =  require('passport');
+const flash = require('connect-flash');
 
 var indexRouter = require("./routes/index");
 
@@ -25,6 +27,7 @@ mongoose.connect(process.env.MONGO_URI, {
     console.log('Error in DB Connection : ' + JSON.stringify(err, undefined, 2));
   }
 });
+require('./config/passport')
 
 // view engine setup
 app.engine('.hbs', expressHbs({defaultLayout: 'layout', extname: '.hbs'}));
@@ -34,7 +37,18 @@ app.set("view engine", ".hbs");
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
 app.use(cookieParser());
+// Express Session 
+app.use(session({
+  secret: 'thisIsTheSecretOfLifeAndDeath',
+  resave: false,
+  saveUninitialized: false
+}))
+app.use(flash());
+// app.use(validator());
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
